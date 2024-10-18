@@ -15,15 +15,15 @@
 #  limitations under the License.
 #
 ###########################################################################
-"""Handler that executes { "smartsheet":{...}} task in recipe JSON.
+"""Handler that executes { "smartsheet":{...}} task in recipe yaml.
 
-This script translates JSON instructions into operations on smartsheet
+This script translates yaml instructions into operations on smartsheet
 reporting.
 
 """
 
 import re
-import json
+import yaml
 
 try:
   from smartsheet import Smartsheet
@@ -110,18 +110,18 @@ def get_rows(config, sheet=None, report=None, header=True, link=True, key='id'):
 
 
 def get_sheet_schema(token, sheet, link=True):
-  sheet_json = smartsheet_api(token).Sheets.get_sheet(sheet, include=('rowPermalink' if link else ''), page_size=0)
-  return get_schema(sheet_json)
+  sheet_yaml = smartsheet_api(token).Sheets.get_sheet(sheet, include=('rowPermalink' if link else ''), page_size=0)
+  return get_schema(sheet_yaml)
 
 
 def get_report_schema(token, report, link=True):
-  report_json = smartsheet_api(token).Reports.get_report(report, page_size=0)
-  return get_schema(report_json)
+  report_yaml = smartsheet_api(token).Reports.get_report(report, page_size=0)
+  return get_schema(report_yaml)
 
 
 def get_sheet_rows(config, token, sheet, link=True):
-  sheet_json = smartsheet_api(token).Sheets.get_sheet(sheet, include=('rowPermalink' if link else ''))
-  return get_rows(config, sheet=sheet_json, header=False, link=link)
+  sheet_yaml = smartsheet_api(token).Sheets.get_sheet(sheet, include=('rowPermalink' if link else ''))
+  return get_rows(config, sheet=sheet_yaml, header=False, link=link)
 
 
 def get_report_rows(config, token, report):
@@ -131,9 +131,9 @@ def get_report_rows(config, token, report):
 
   api = smartsheet_api(token)
   while count < total:
-    report_json = api.Reports.get_report(report, page_size=SMARTSHEET_PAGESIZE, page=page)
-    total = report_json.total_row_count
-    for row in get_rows(config, report=report_json, header=False, link=False):
+    report_yaml = api.Reports.get_report(report, page_size=SMARTSHEET_PAGESIZE, page=page)
+    total = report_yaml.total_row_count
+    for row in get_rows(config, report=report_yaml, header=False, link=False):
       yield row
       count += 1
     page += 1
@@ -154,13 +154,13 @@ def smartsheet(config, log, task):
     schema = get_report_schema(task['token'], task['report'])
 
   else:
-    raise NameError('Either report or sheet must be in the recipe json.')
+    raise NameError('Either report or sheet must be in the recipe yaml.')
 
   # add schema if not given
   if not task['results']['bigquery'].get('schema'):
     task['results']['bigquery']['schema'] = schema
     if config.verbose:
-      print('SCHEMA = %s' % json.dumps(task['results']['bigquery']['schema'], indent=2))
+      print('SCHEMA = %s' % yaml.dump(task['results']['bigquery']['schema'], indent=2))
 
   # add row links link if specified
   if link: 

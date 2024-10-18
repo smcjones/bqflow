@@ -40,9 +40,9 @@ python3 -m pip install -r requirements.txt
 
 ## Run A Workflow
 
-A workflow is a JSON file that contains API endpoints and parameters. See the
+A workflow is a yaml file that contains API endpoints and parameters. See the
 [Wiki](../../wiki) for details examples and details on workflows. You may also
-receive workflow JSON files from Google when collaborating on a project. The
+receive workflow yaml files from Google when collaborating on a project. The
 following command will show you how to run a workflow:
 
 ```
@@ -137,7 +137,7 @@ To execute the workflows on a schedule from [Google Drive](https://www.google.co
   1. Set up the [schedule tab](https://console.cloud.google.com/compute/instances/instanceSchedules?&tab=instanceSchedules).
   1. Start adding workflows to your drive folder and sharing with the service email address from step one.
      * For security reasons workflows have to be in [DRIVE FOLDER LINK].
-     * Edit JSON files from your machine using [Google Drive For Desktop](https://www.google.com/drive/download/).
+     * Edit yaml files from your machine using [Google Drive For Desktop](https://www.google.com/drive/download/).
 
 
 ## Authentication Credentials
@@ -150,7 +150,7 @@ when handling credentials.
 
   1. For [Service](https://developers.google.com/workspace/guides/create-credentials#service-account) you have 2 options:
      * **Keyless**, provision credentials and assign to VM, a key is never downloaded but all workflows must run as this service.
-     * **JSON**, download the service keys to the VM (or equivalent) and use in combination with specific workflows.
+     * **yaml**, download the service keys to the VM (or equivalent) and use in combination with specific workflows.
      * Be sure to grant the service the [IAM Roles](https://cloud.google.com/iam/docs/grant-role-console) **roles/bigquery.dataOwner** and **roles/bigquery.jobUser**.
   1. For [User](https://developers.google.com/workspace/guides/create-credentials#oauth-client-id)
      * Run `python3 bqflow/auth.py -h` and follow instructions.
@@ -179,7 +179,7 @@ when handling credentials.
 **Why BigQuery?**
 
   1. More accessibility, SQL is easier to learn and use than Python.
-  1. Supports nested JSON structures required by most APIs.
+  1. Supports nested yaml structures required by most APIs.
   1. Has [hundreds of functions](https://cloud.google.com/bigquery/docs/reference/standard-sql/functions-and-operators) for manipulating data.
   1. Allows combining of tables (API endpoints).
   1. Can be connected to [dashboards](https://lookerstudio.google.com/).

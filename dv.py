@@ -18,7 +18,7 @@
 #
 ###########################################################################
 
-import json
+import yaml
 import argparse
 import textwrap
 
@@ -29,7 +29,7 @@ from bqflow.util.dv_api import report_file, report_to_rows, report_clean
 from bqflow.util.google_api import API_DBM
 
 def task_template(auth, report):
-  """Helper to create a BQFlow compatible task JSON from DV report."""
+  """Helper to create a BQFlow compatible task yaml from DV report."""
 
   task = {
     "dv_report":{
@@ -63,21 +63,21 @@ def main():
 
       Examples:
         To get list of reports: python dv.py --list -u [user credentials path]
-        To get report json: python dv.py --report [id] -u [user credentials path]
+        To get report yaml: python dv.py --report [id] -u [user credentials path]
         To get report schema: python dv.py --schema [id] -u [user credentials path]
         To get report sample: python dv.py --sample [id] -u [user credentials path]
 
   """))
 
   # create parameters
-  parser.add_argument('--user', '-u', help='Path to USER credentials json file.', default=None)
-  parser.add_argument('--service', '-s', help='Path to SERVICE credentials json file.', default=None)
+  parser.add_argument('--user', '-u', help='Path to USER credentials yaml file.', default=None)
+  parser.add_argument('--service', '-s', help='Path to SERVICE credentials yaml file.', default=None)
 
-  parser.add_argument('--report', help='report ID to pull json definition', default=None)
+  parser.add_argument('--report', help='report ID to pull yaml definition', default=None)
   parser.add_argument('--schema', help='report ID to pull schema format', default=None)
   parser.add_argument('--sample', help='report ID to pull sample data', default=None)
   parser.add_argument('--list', help='list reports', action='store_true')
-  parser.add_argument('--task', help='report ID to pull json task', default=None)
+  parser.add_argument('--task', help='report ID to pull yaml task', default=None)
 
   # initialize project
   args = parser.parse_args()
@@ -91,12 +91,12 @@ def main():
   # get report
   if args.report:
     report = API_DBM(config, auth).queries().get(queryId=args.report).execute()
-    print(json.dumps(report, indent=2, sort_keys=True))
+    print(yaml.dump(report, indent=2, sort_keys=True))
 
-  # get task json
+  # get task yaml
   elif args.task:
     report = API_DBM(config, auth).queries().get(queryId=args.task).execute()
-    print(json.dumps(task_template(auth, report), indent=2, sort_keys=True))
+    print(yaml.dump(task_template(auth, report), indent=2, sort_keys=True))
 
   # get schema
   elif args.schema:
@@ -104,7 +104,7 @@ def main():
     rows = report_to_rows(report)
     rows = report_clean(rows)
     rows = rows_to_type(rows)
-    print(json.dumps(get_schema(rows)[1], indent=2, sort_keys=True))
+    print(yaml.dump(get_schema(rows)[1], indent=2, sort_keys=True))
 
   # get sample
   elif args.sample:
@@ -118,7 +118,7 @@ def main():
   # get list
   else:
     for report in API_DBM(config, auth, iterate=True).queries().list().execute():
-      print(json.dumps(report, indent=2, sort_keys=True))
+      print(yaml.dump(report, indent=2, sort_keys=True))
 
 
 if __name__ == '__main__':

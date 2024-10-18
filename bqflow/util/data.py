@@ -16,7 +16,7 @@
 #
 ###########################################################################
 
-"""Processes standard read / write JSON block for dynamic loading of data.
+"""Processes standard read / write yaml block for dynamic loading of data.
 
 The goal is to create standard re-usable input output blocks.  These functions
 are extensible, and should include additional sources and destinations over
@@ -37,7 +37,7 @@ from bqflow.util.csv import rows_to_csv, rows_to_type
 
 
 def get_rows(config, auth, source, as_object=False, unnest=False):
-  """Processes standard read JSON block for dynamic loading of data.
+  """Processes standard read yaml block for dynamic loading of data.
 
   Allows us to quickly pull a column or columns of data from and use it as an
   input
@@ -52,14 +52,14 @@ def get_rows(config, auth, source, as_object=False, unnest=False):
   - Values, bigquery, sheet are optional, if multiple given result is one
   continous iterator.
   - Extensible, add a handler to define a new source ( be kind update the
-  documentation json ).
+  documentation yaml ).
 
-  Include the following JSON in a recipe, then in the run.py handler when
+  Include the following yaml in a recipe, then in the run.py handler when
   encountering that block pass it to this function and use the returned results.
 
     from bqflow.util.data import get_rows
 
-    var_json = {
+    var_yaml = {
       "in":{
         "unnest":[ boolean ],
         "values": [ integer list ],
@@ -83,12 +83,12 @@ def get_rows(config, auth, source, as_object=False, unnest=False):
       }
     }
 
-    values = get_rows('user', var_json)
+    values = get_rows('user', var_yaml)
 
   Args:
-    config: (json) The authentication details.
+    config: (yaml) The authentication details.
     auth: (string) The type of authentication to use, user or service.
-    source: (json) A json block resembling var_json described above.
+    source: (yaml) A yaml block resembling var_yaml described above.
 
   Returns:
     If unnest is False: Returns a list of row values [[v1], [v2], ... ]
@@ -162,7 +162,7 @@ def get_rows(config, auth, source, as_object=False, unnest=False):
 
 
 def put_rows(config, auth, destination, rows):
-  """Processes standard write JSON block for dynamic export of data.
+  """Processes standard write yaml block for dynamic export of data.
 
   Allows us to quickly write the results of a script to a destination.  For
   example
@@ -170,20 +170,20 @@ def put_rows(config, auth, destination, rows):
 
   - Will write to multiple destinations if specified.
   - Extensible, add a handler to define a new destination ( be kind update the
-  documentation json ).
+  documentation yaml ).
 
-  Include the following JSON in a recipe, then in the run.py handler when
+  Include the following yaml in a recipe, then in the run.py handler when
   encountering that block pass it to this function and use the returned results.
 
     from bqflow.util.data import put_rows
 
-    var_json = {
+    var_yaml = {
       "out":{
         "bigquery":{
           "auth":"[ user or service ]",
           "dataset": [ string ],
           "table": [ string ]
-          "schema": [ json - standard bigquery schema json ],
+          "schema": [ yaml - standard bigquery schema yaml ],
           "header": [ boolean - true if header exists in rows ]
           "disposition": [ string - same as BigQuery documentation ]
           "merge": [ string list - columns to maintain uniqueness on ]
@@ -206,13 +206,13 @@ def put_rows(config, auth, destination, rows):
       }
     }
 
-    values = put_rows('user', var_json)
+    values = put_rows('user', var_yaml)
 
   Args:
     auth: (string) The type of authentication to use, user or service.
     rows: ( iterator ) The list of rows to be written, if NULL no action is performed.
-    schema: (json) A bigquery schema definition.
-    destination: (json) A json block resembling var_json described above. rows (
+    schema: (yaml) A bigquery schema definition.
+    destination: (yaml) A yaml block resembling var_yaml described above. rows (
       list ) The data being written as a list object. 
 
   Returns:

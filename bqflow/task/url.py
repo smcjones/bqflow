@@ -19,8 +19,8 @@
 """ Recipe handler for "url" task.
 
 Allows a list of URLs to be pulled from the web and places into a table or sheet.
-Leverages get_rows and put_rows JSON pattern for IO. See docs.
-For sample use see scripts/url.json. Allows flagging status and or content in response.
+Leverages get_rows and put_rows yaml pattern for IO. See docs.
+For sample use see scripts/url.yaml. Allows flagging status and or content in response.
 
 """
 
@@ -44,7 +44,7 @@ URL_SCHEMA = [
 def url_fetch(config, task) -> Iterator[dict]:
   """Fetch URL list and return both status code and/or contents.
 
-  Takes no parameters, it operates on recipe JSON directly. Core
+  Takes no parameters, it operates on recipe yaml directly. Core
   function is to call urlopen on each passed in URL.
 
   Returns:
@@ -96,7 +96,7 @@ def url(config, log, task):
   """
 
   # Eventually add format detection or parameters to put_rows
-  task['to']['bigquery']['format'] = 'JSON'
+  task['to']['bigquery']['format'] = 'yaml'
   task['to']['bigquery']['schema'] = URL_SCHEMA
 
   return put_rows(

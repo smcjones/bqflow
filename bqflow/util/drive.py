@@ -231,7 +231,7 @@ class Drive():
       overwrite: force the file writte even if it exists
 
     Returns:
-      JSON specification of file created or existing.
+      yaml specification of file created or existing.
   """
 
     if not overwrite:

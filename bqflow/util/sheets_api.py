@@ -52,7 +52,7 @@ class Sheets():
     # check if URL given, convert to ID "https://docs.google.com/spreadsheets/d/1uN9tnb-DZ9zZflZsoW4_34sf34tw3ff/edit#gid=4715"
     if url_or_name.startswith('https://docs.google.com/spreadsheets/d/'):
       m = re.search(
-          '^(?:https:\/\/docs.google.com\/spreadsheets\/d\/)?([a-zA-Z0-9-_]+)(?:\/.*)?$',
+          r'^(?:https:\/\/docs.google.com\/spreadsheets\/d\/)?([a-zA-Z0-9-_]+)(?:\/.*)?$',
           url_or_name)
       if m:
         return m.group(1)
@@ -292,7 +292,7 @@ class Sheets():
   
     Args:
       sheet_url_or_name - one of: URL, document title, or id
-      data - JSON data for sending to batch request
+      data - yaml data for sending to batch request
   
     No Return
     '''
@@ -309,7 +309,7 @@ class Sheets():
   
     Args:
       sheet_url_or_name - one of: URL, document title, or id
-      data - JSON data for sending to batch request
+      data - yaml data for sending to batch request
   
     No Return
     '''
@@ -419,7 +419,7 @@ class Sheets():
       * parent: (string) the Google Drive to upload the file to.
   
     Returns:
-      * JSON specification of the file created or existing.
+      * yaml specification of the file created or existing.
   
     """
   

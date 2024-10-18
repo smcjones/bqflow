@@ -16,9 +16,9 @@
 #
 ###########################################################################
 
-"""Handler that executes { "ga":{...}} task in recipe JSON.
+"""Handler that executes { "ga":{...}} task in recipe yaml.
 
-Connects the Google Analytics Reporting API to recipe JSON.  This task
+Connects the Google Analytics Reporting API to recipe yaml.  This task
 is required because the reporting response needs additional processing.
 """
 
@@ -41,7 +41,7 @@ def ga_report(config, log, task):
 
   if 'bigquery' in task.get('out', {}):
     task['out']['bigquery']['schema'] = report.get_schema()
-    task['out']['bigquery']['format'] = 'JSON'
+    task['out']['bigquery']['format'] = 'yaml'
 
   return put_rows(
     config,

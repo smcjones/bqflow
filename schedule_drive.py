@@ -72,7 +72,7 @@ class DriveRunner():
 
     root = Drive(self.config, self.auth).file_id(args.drive)
     for file in API_Drive(self.config, self.auth, iterate=True).files().list(
-      q='"{}" in parents and mimeType="application/json" and trashed=false'.format(root), fields='files(id,name,parents)'
+      q='"{}" in parents and mimeType="application/yaml" and trashed=false'.format(root), fields='files(id,name,parents)'
     ).execute():
       key = ''.join(file['parents'])
       folders.setdefault(key, [])
@@ -93,12 +93,12 @@ if __name__ == '__main__':
 
     Folder Link = dir, passed as parameter to this script
       - workflow_1 = dir, ran as a single sequence
-        - workflow_a.json = file, the sequence of BQFlow steps to run
-        - workflow_b.json = file, the sequence of BQFlow steps to run
+        - workflow_a.yaml = file, the sequence of BQFlow steps to run
+        - workflow_b.yaml = file, the sequence of BQFlow steps to run
         - ...
       - workflow_2 = dir, ran as a single sequence
-        - workflow_a.json = file, the sequence of BQFlow steps to run
-        - workflow_b.json = file, the sequence of BQFlow steps to run
+        - workflow_a.yaml = file, the sequence of BQFlow steps to run
+        - workflow_b.yaml = file, the sequence of BQFlow steps to run
         - ...
 
     Currently all the workflows will be executed using the credentials passed into this script.
@@ -127,21 +127,21 @@ if __name__ == '__main__':
   parser.add_argument(
    '--service',
     '-s',
-    help='Path to SERVICE credentials json file.',
+    help='Path to SERVICE credentials yaml file.',
     default=None
   )
 
   parser.add_argument(
     '--client',
     '-c',
-    help='Path to CLIENT credentials json file.',
+    help='Path to CLIENT credentials yaml file.',
     default=None
   )
 
   parser.add_argument(
     '--user',
     '-u',
-     help='Path to USER credentials json file.',
+     help='Path to USER credentials yaml file.',
     default=None
   )
 

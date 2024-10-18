@@ -18,7 +18,7 @@
 
 import os
 import errno
-import json
+import yaml
 import httplib2
 from time import sleep
 from io import BytesIO
@@ -231,7 +231,7 @@ def bucket_create(config, auth, project, name, location='us-west1'):
     except HttpError as e:
       if e.resp.status in [403, 500, 503]:
         sleep(5)
-      elif json.loads(e.content.decode())['error']['code'] == 409:
+      elif yaml.safe_load(e.content.decode())['error']['code'] == 409:
         pass  # already exists ( ignore )
       else:
         raise

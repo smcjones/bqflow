@@ -51,9 +51,9 @@ def get_credentials(config, auth):
       print('')
       print('SOLUTION: Specify a -u [user credentials path] parameter on the command line.')
       print('          Alternaitvely specify a -u [user credentials path to be created] parameter and a -c [client credentials path] parameter on the command line.')
-      print('          Alternaitvely if running a recipe, include { "setup":{ "auth":{ "user":"[JSON OR PATH]" }}} in the JSON.')
+      print('          Alternaitvely if running a recipe, include { "setup":{ "auth":{ "user":"[yaml OR PATH]" }}} in the yaml.')
       print('')
-      print('Client JSON Parameter Missing:', str(e))
+      print('Client yaml Parameter Missing:', str(e))
       print('')
       sys.exit(1)
 
@@ -67,9 +67,9 @@ def get_credentials(config, auth):
       print('ERROR: You are attempting to access an API endpoint that requires Google Cloud SERVICE authentication but have not provided credentials to make that possible.')
       print('')
       print('SOLUTION: Specify a -s [service credentials path] parameter on the command line.')
-      print('          Alternaitvely if running a recipe, include { "setup":{ "auth":{ "service":"[JSON OR PATH]" }}} in the JSON.')
+      print('          Alternaitvely if running a recipe, include { "setup":{ "auth":{ "service":"[yaml OR PATH]" }}} in the yaml.')
       print('')
-      print('Client JSON Parameter Missing:', str(e))
+      print('Client yaml Parameter Missing:', str(e))
       print('')
       sys.exit(1)
 
@@ -161,8 +161,8 @@ def get_service(config,
 
 
 def get_client_type(credentials):
-  client_json = CredentialsFlowWrapper(credentials, credentials_only=True)
-  return next(iter(client_json.keys()))
+  client_yaml = CredentialsFlowWrapper(credentials, credentials_only=True)
+  return next(iter(client_yaml.keys()))
 
 
 def get_profile(config):

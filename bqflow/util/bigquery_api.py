@@ -22,7 +22,7 @@ import codecs
 import base64
 import csv
 import uuid
-import json
+import yaml
 import datetime
 import time
 
@@ -43,11 +43,10 @@ RE_INDENT = re.compile(r' {5,}')
 BIGQUERY_DATE_FORMAT = "%Y-%m-%d"
 BIGQUERY_TIME_FORMAT = "%H:%M:%S"
 
+class yaml_To_BigQuery:
+  """Translate complex Python objects into BigQuery formats where yaml does not have defaults.
 
-class JSON_To_BigQuery(json.JSONEncoder):
-  """Translate complex Python objects into BigQuery formats where json does not have defaults.
-
-  Usage: json.dumps(..., cls=JSON_To_BigQuery)
+  Usage: yaml.dump(..., cls=yaml_To_BigQuery)
 
   Currently translates:
     bytes -> base64
@@ -56,7 +55,7 @@ class JSON_To_BigQuery(json.JSONEncoder):
     time - > str
 
   Args:
-    obj -  any json dumps parameter without a default handler
+    obj -  any yaml dumps parameter without a default handler
 
   Returns:
     Always a string version of the object passed in.
@@ -75,7 +74,7 @@ class JSON_To_BigQuery(json.JSONEncoder):
     elif isinstance(obj, map):
       return list(obj)
     else:
-      return super(JSON_To_BigQuery, self).default(obj)
+      return super(yaml_To_BigQuery, self).default(obj)
 
 
 def make_schema(header):
@@ -156,7 +155,7 @@ def get_schema(rows, header=True, infer_type=True):
   return row_buffer, schema
 
 
-def row_to_json(row, schema, as_object=False):
+def row_to_yaml(row, schema, as_object=False):
 
   if as_object:
     row_raw = {'f': [{'v': row}]}
@@ -441,7 +440,7 @@ class BigQuery():
             'datasetId': dataset_id,
             'tableId': table_id,
           },
-          'sourceFormat': 'NEWLINE_DELIMITED_JSON',
+          'sourceFormat': 'NEWLINE_DELIMITED_yaml',
           'writeDisposition': disposition,
           'autodetect': True,
           'allowJaggedRows': True,
@@ -456,7 +455,7 @@ class BigQuery():
       body['configuration']['load']['schema'] = {'fields': schema}
       body['configuration']['load']['autodetect'] = False
 
-    if structure == 'CSV':  # CSV, NEWLINE_DELIMITED_JSON
+    if structure == 'CSV':  # CSV, NEWLINE_DELIMITED_yaml
       body['configuration']['load']['sourceFormat'] = 'CSV'
       body['configuration']['load']['skipLeadingRows'] = 1 if header else 0
 
@@ -484,13 +483,13 @@ class BigQuery():
     wait=True
   ):
 
-    # check if JSON format, use custom handler
-    if source_format == 'JSON':
-      return self.json_to_table(
+    # check if yaml format, use custom handler
+    if source_format == 'yaml':
+      return self.yaml_to_table(
         project_id = project_id,
         dataset_id = dataset_id,
         table_id = table_id,
-        json_data = rows,
+        yaml_data = rows,
         schema = schema,
         disposition = disposition,
         wait = wait
@@ -553,28 +552,28 @@ class BigQuery():
       )
 
 
-  def json_to_table(
+  def yaml_to_table(
     self,
     project_id,
     dataset_id,
     table_id,
-    json_data,
+    yaml_data,
     schema=None,
     disposition='WRITE_TRUNCATE',
     wait=True
   ):
 
     if self.config.verbose:
-      print('BIGQUERY JSON TO TABLE: ', project_id, dataset_id, table_id)
+      print('BIGQUERY yaml TO TABLE: ', project_id, dataset_id, table_id)
 
     buffer_data = BytesIO()
     has_rows = False
 
-    for is_last, record in flag_last(json_data):
+    for is_last, record in flag_last(yaml_data):
 
-      # check if json is already string encoded, and write to buffer
+      # check if yaml is already string encoded, and write to buffer
       buffer_data.write(
-        (record if isinstance(record, str) else json.dumps(record, cls=JSON_To_BigQuery)
+        (record if isinstance(record, str) else yaml.dump(record, cls=yaml_To_BigQuery)
       ).encode('utf-8'))
 
       # write the buffer in chunks
@@ -584,7 +583,7 @@ class BigQuery():
         buffer_data.seek(0)  # reset for read
 
         self.io_to_table(project_id, dataset_id, table_id, buffer_data,
-                    'NEWLINE_DELIMITED_JSON', schema, 0, disposition)
+                    'NEWLINE_DELIMITED_yaml', schema, 0, disposition)
 
         # reset buffer for next loop, be sure to do an append to the table
         buffer_data.seek(0)  #reset for write
@@ -592,7 +591,7 @@ class BigQuery():
         disposition = 'WRITE_APPEND'  # append all remaining records
         has_rows = True
 
-      # if not end append newline, for newline delimited json
+      # if not end append newline, for newline delimited yaml
       else:
         buffer_data.write('\n'.encode('utf-8'))
 
@@ -603,7 +602,7 @@ class BigQuery():
         dataset_id,
         table_id,
         buffer_data,
-        'NEWLINE_DELIMITED_JSON',
+        'NEWLINE_DELIMITED_yaml',
         schema,
         0,
         disposition,
@@ -644,7 +643,7 @@ class BigQuery():
               'datasetId': dataset_id,
               'tableId': table_id,
             },
-            'sourceFormat': source_format,  # CSV, NEWLINE_DELIMITED_JSON
+            'sourceFormat': source_format,  # CSV, NEWLINE_DELIMITED_yaml
             'writeDisposition': disposition,  # WRITE_TRUNCATE, WRITE_APPEND, WRITE_EMPTY
             'autodetect': True,
             'allowJaggedRows': True,
@@ -949,7 +948,7 @@ class BigQuery():
         startIndex=row_start,
         maxResults=row_max,
       ).execute():
-        yield row_to_json(
+        yield row_to_yaml(
           row,
           table_schema,
           as_object
@@ -1033,7 +1032,7 @@ class BigQuery():
     row_count = 0
     while 'rows' in response:
       for row in response['rows']:
-        yield row_to_json(row, schema, as_object)
+        yield row_to_yaml(row, schema, as_object)
         row_count += 1
 
       if 'PageToken' in response:

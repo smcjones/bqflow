@@ -16,10 +16,10 @@
 #
 ###########################################################################
 
-"""Handler that executes { "dbm":{...}} task in recipe JSON.
+"""Handler that executes { "dbm":{...}} task in recipe yaml.
 
-This script translates JSON instructions into operations on DBM reporting.
-It deletes, or creates, and/or downloads DBM reports.  See JSON files in
+This script translates yaml instructions into operations on DBM reporting.
+It deletes, or creates, and/or downloads DBM reports.  See yaml files in
 this directory for examples of operations.
 
 This script uses put_rows as defined in util/data/README.md. This allows
@@ -109,6 +109,6 @@ def dv_report(config, log, task):
       rows = report_to_rows(report)
       rows = report_clean(rows)
 
-      # write rows using standard out block in json ( allows customization across all scripts )
+      # write rows using standard out block in yaml ( allows customization across all scripts )
       if rows:
         return put_rows(config, task['auth'], task['out'], rows)

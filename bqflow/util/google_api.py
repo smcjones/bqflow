@@ -26,7 +26,7 @@ This does not change or augment the standard API calls other than the following:
   - Execute statement is overloaded to include iterator for responses with
   nextPageToken.
   - Retries handle some common errors and have a back off scheme.
-  - JSON based configuration allows wrokflow definitions.
+  - yaml based configuration allows wrokflow definitions.
   - Pre-defined functions for each API can be added to fix version and uri
   options.
 """
@@ -34,7 +34,7 @@ This does not change or augment the standard API calls other than the following:
 import base64
 from collections.abc import Mapping, Sequence
 import datetime
-import json
+import yaml
 import time
 from typing import Any, Callable, Union
 import ssl
@@ -63,7 +63,7 @@ RETRIABLE_STATUS_CODES = [500, 502, 503, 504]
 def _clean(
   struct: Union[Mapping[str, Any], Sequence[Any]]
 ) -> Union[Mapping[str, Any], Sequence[Any]]:
-  """Helper to recursively clean up JSON data for API call.
+  """Helper to recursively clean up yaml data for API call.
 
   Converts bytes -> base64.
   Converts date -> str (yyyy-mm-dd).
@@ -116,12 +116,12 @@ def API_Retry(
 
   Args:
     job: API call path, everything before the execute() statement to retry.
-    key: Optional key from json reponse to return.
+    key: Optional key from yaml reponse to return.
     retries: Number of times to try the job.
     wait: Time to wait in seconds between retries.
 
   Returns:
-    JSON result of job or key value from JSON result if job succeed.
+    yaml result of job or key value from yaml result if job succeed.
     None if object already exists.
 
   Raises:
@@ -137,7 +137,7 @@ def API_Retry(
   except HttpError as e:
     # errors that can be overcome or re-tried (403 is rate limit with inspect)
     if e.resp.status in [403, 409, 429, 500, 503]:
-      content = json.loads(e.content.decode())
+      content = yaml.safe_load(e.content.decode())
       # already exists (ignore benign)
       if content['error']['code'] == 409:
         return None
@@ -220,7 +220,7 @@ class API_Iterator_Instance():
    limit: maximum number of records to return
 
   Returns:
-    Iterator over JSON objects or Mapping or other depending on API.
+    Iterator over yaml objects or Mapping or other depending on API.
   """
 
   def __init__(
@@ -241,7 +241,7 @@ class API_Iterator_Instance():
 
   def __find_tag__(self):
     # find the only list item for a paginated response
-    # JSON will only have list type, so ok to be specific
+    # yaml will only have list type, so ok to be specific
     if self.results:  # None and {} both excluded
       for tag in iter(self.results.keys()):
         if isinstance(self.results[tag], list):
@@ -324,7 +324,7 @@ class API():
   actual API. Allows handlers on execute such as API_Retry and API_Iterator.
 
   See module level description for wrapped changes to Google API.  The class
-  is designed to be a JSON connector, hence the configuraton is a JSON object.
+  is designed to be a yaml connector, hence the configuraton is a yaml object.
 
   api = {
     "api":"doubleclickbidmanager",

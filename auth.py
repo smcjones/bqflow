@@ -18,7 +18,7 @@
 #
 ###########################################################################
 
-import json
+import yaml
 import argparse
 import textwrap
 
@@ -32,7 +32,7 @@ def main():
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description=textwrap.dedent("""\
     Creates USER credentials from Google Cloud Project CLIENT Credentials and displays profile information if it worked.
-    CLIENT credentials are required to run this script, to obtain the JSON file...
+    CLIENT credentials are required to run this script, to obtain the yaml file...
 
       Step 1: Configure Authentication Consent Screen ( do only once )
       ----------------------------------------
@@ -57,7 +57,7 @@ def main():
       Step 4: Run Auth Workflow To Get User Credentials File ( do only once )"
       ----------------------------------------"
         A. Run this command with parameters, see Examples below.
-        B. The user.json file will be created and can be used to access Google APIs.
+        B. The user.yaml file will be created and can be used to access Google APIs.
         C. The user profile will be printed to the screen.
 
         Note:
@@ -65,8 +65,8 @@ def main():
 
         Examples: 
           python bqflow/auth.py -c [CLIENT file path, you have this] -u [USER file path, file will be created]
-          python bqflow/auth.py -c client.json  and -u user.json
-          python bqflow/auth.py -c client.json  and -u user.json -browserless
+          python bqflow/auth.py -c client.yaml  and -u user.yaml
+          python bqflow/auth.py -c client.yaml  and -u user.yaml -browserless
 
         All scopes are controlled by: bqflow/bqflow/config.py
 
@@ -76,14 +76,14 @@ def main():
   parser.add_argument(
     '--client',
     '-c',
-    help='Path to CLIENT credentials json file.',
+    help='Path to CLIENT credentials yaml file.',
     default=None
   )
 
   parser.add_argument(
     '--user',
     '-u',
-     help='Path to USER credentials json file.',
+     help='Path to USER credentials yaml file.',
     default=None
   )
 
@@ -103,7 +103,7 @@ def main():
   )
 
   # get profile to verify everything worked
-  print('Profile:', json.dumps(get_profile(config), indent=2, sort_keys=True))
+  print('Profile:', yaml.dump(get_profile(config), indent=2, sort_keys=True))
 
 
 if __name__ == '__main__':

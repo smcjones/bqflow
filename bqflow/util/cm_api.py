@@ -146,7 +146,7 @@ def parse_account(config, auth, account):
 
 
 def report_get(config, auth, account, report_id=None, name=None):
-  """ Returns the DCM JSON definition of a report based on name or ID.
+  """ Returns the DCM yaml definition of a report based on name or ID.
 
   Bulletproofing:
   https://developers.google.com/doubleclick-advertisers/v3.2/reports/get
@@ -158,7 +158,7 @@ def report_get(config, auth, account, report_id=None, name=None):
     * name: (string) Name of report to fetch ( either or report_id ).
 
   Returns:
-    * JSON definition of report.
+    * yaml definition of report.
 
   """
 
@@ -240,11 +240,11 @@ def report_filter(config, auth, body, filters):
 
   Args:
     * auth: (string) Either user or service.
-    * body: (json) the report body ( with or without filters )
-    * filters: (json) a dictionary of filters to apply ( see above examples )
+    * body: (yaml) the report body ( with or without filters )
+    * filters: (yaml) a dictionary of filters to apply ( see above examples )
 
   Returns:
-    * body: ( json ) modified report body
+    * body: ( yaml ) modified report body
   """
 
   new_body = body.copy()
@@ -252,11 +252,11 @@ def report_filter(config, auth, body, filters):
   for f, d in filters.items():
     for v in get_rows(config, auth, d):
 
-      # accounts are specified in a unique part of the report json
+      # accounts are specified in a unique part of the report yaml
       if f == 'accountId':
         new_body['accountId'] = v
 
-      # activities are specified in a unique part of the report json
+      # activities are specified in a unique part of the report yaml
       elif f == 'activity':
         new_body['reachCriteria']['activities'].setdefault('filters', []).append({
           'kind': 'dfareporting#dimensionValue',
@@ -277,12 +277,12 @@ def report_filter(config, auth, body, filters):
 
 
 def report_build(config, auth, account, body):
-  """ Creates a DCM report given a JSON definition.
+  """ Creates a DCM report given a yaml definition.
 
   Bulletproofing:
   https://developers.google.com/doubleclick-advertisers/v3.2/reports/insert
 
-  The body JSON provided will have the following fields overriden:
+  The body yaml provided will have the following fields overriden:
     * accountId - supplied as a parameter in account token.
     * ownerProfileId - determined from the current credentials.
     * advertiser_ids - supplied as a parameter in account token.
@@ -290,11 +290,11 @@ def report_build(config, auth, account, body):
   Args:
     * auth: (string) Either user or service.
     * account: (string) [account:advertiser@profile] token.
-    * body: (json) As defined in:
+    * body: (yaml) As defined in:
       https://developers.google.com/doubleclick-advertisers/v3.2/reports#resource
 
   Returns:
-    * JSON definition of report created or existing.
+    * yaml definition of report created or existing.
 
   """
 
@@ -352,7 +352,7 @@ def report_build(config, auth, account, body):
 
 
 def report_fetch(config, auth, account, report_id=None, name=None, timeout=60):
-  """ Retrieves most recent DCM file JSON by name or ID, if in progress, waits for it to complete.
+  """ Retrieves most recent DCM file yaml by name or ID, if in progress, waits for it to complete.
 
   Bulletproofing:
   https://developers.google.com/doubleclick-advertisers/v3.2/files/get
@@ -368,7 +368,7 @@ def report_fetch(config, auth, account, report_id=None, name=None, timeout=60):
     * timeout: (int) Minutes to wait for in progress report before giving up.
 
   Returns:
-    * Report JSON if report exists and is ready.
+    * Report yaml if report exists and is ready.
     * True if report is in progress but not ready.
     * False if report does not exist.
 
@@ -390,11 +390,11 @@ def report_fetch(config, auth, account, report_id=None, name=None, timeout=60):
   while timeout >= 0:
 
     # loop all files recent to oldest looking for valid one
-    for file_json in report_files(config, auth, account, report_id):
+    for file_yaml in report_files(config, auth, account, report_id):
       #pprint.PrettyPrinter().pprint(file)
 
       # still running ( wait for timeout )
-      if file_json.get('status') in ('PROCESSING', 'QUEUED', None):
+      if file_yaml.get('status') in ('PROCESSING', 'QUEUED', None):
         if config.verbose:
           print('REPORT PROCESSING WILL WAIT')
         running = True
@@ -402,10 +402,10 @@ def report_fetch(config, auth, account, report_id=None, name=None, timeout=60):
           break  # go to outer loop wait
 
       # ready for download ( return file )
-      elif file_json.get('status') == 'REPORT_AVAILABLE':
+      elif file_yaml.get('status') == 'REPORT_AVAILABLE':
         if config.verbose:
           print('REPORT DONE')
-        return file_json
+        return file_yaml
 
       # cancelled or failed ( go to next file in loop )
 
@@ -463,8 +463,8 @@ def report_run(config, auth, account, report_id=None, name=None):
 
 
   files = report_files(config, auth, account, report_id)
-  latest_file_json = next(files, None)
-  if latest_file_json == None or latest_file_json['status'] != 'PROCESSING':
+  latest_file_yaml = next(files, None)
+  if latest_file_yaml == None or latest_file_yaml['status'] != 'PROCESSING':
     # run report if previously never run or currently not running
     if config.verbose:
       print('RUNNING REPORT', report_id or name)
@@ -511,24 +511,24 @@ def report_file(config, auth,
   """
 
   account_id, profile_id, advertiser_ids = parse_account(config, auth, account)
-  file_json = report_fetch(config, auth, account, report_id, name, timeout)
+  file_yaml = report_fetch(config, auth, account, report_id, name, timeout)
 
-  if file_json == False:
+  if file_yaml == False:
     return None, None
-  elif file_json == True:
+  elif file_yaml == True:
     return 'report_running.csv', None
   else:
     filename = '%s_%s.csv' % (
-      file_json['fileName'],
-      file_json['dateRange']['endDate'].replace('-', '')
+      file_yaml['fileName'],
+      file_yaml['dateRange']['endDate'].replace('-', '')
     )
 
     # streaming
     if chunksize:
       return filename, media_download(
         API_DCM(config, auth).files().get_media(
-          reportId=file_json['reportId'],
-          fileId=file_json['id']
+          reportId=file_yaml['reportId'],
+          fileId=file_yaml['id']
         ).execute(False), chunksize, 'utf-8'
       )
 
@@ -536,8 +536,8 @@ def report_file(config, auth,
     else:
       return filename, StringIO(
         API_DCM(config, auth).files().get_media(
-          reportId=file_json['reportId'],
-          fileId=file_json['id']
+          reportId=file_yaml['reportId'],
+          fileId=file_yaml['id']
         ).execute().decode('utf-8')
       )
 
@@ -553,7 +553,7 @@ def report_list(config, auth, account):
     * account: (string) [account:advertiser@profile] token.
 
   Returns:
-    * Iterator of JSONs.
+    * Iterator of yamls.
 
   """
 
@@ -578,7 +578,7 @@ def report_files(config, auth, account, report_id):
     * report_id: (int) DCM report identifier.
 
   Returns:
-    * Iterator of JSONs.
+    * Iterator of yamls.
 
   """
 
@@ -646,7 +646,7 @@ def report_schema(headers):
     * headers: (list) First row of a report.
 
   Returns:
-    * JSON schema definition.
+    * yaml schema definition.
 
   """
   schema = []

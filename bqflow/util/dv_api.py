@@ -40,7 +40,7 @@ def report_get(
   report_id: int = None,
   name: str = None
 ) -> dict:
-  """Returns the DBM JSON definition of a report based on name or ID.
+  """Returns the DBM yaml definition of a report based on name or ID.
 
   Args:
     * auth: (string) Either user or service.
@@ -48,7 +48,7 @@ def report_get(
     * name: (string) Name of report to fetch ( either or report_id ).
 
   Returns:
-    * JSON definition of report.
+    * yaml definition of report.
   """
 
   if name:
@@ -87,11 +87,11 @@ def report_filter(
 
   Args:
     * auth: (string) Either user or service.
-    * body: (json) the report body ( with or without filters )
-    * filters: (json) a dictionary of filters to apply ( see above examples )
+    * body: (yaml) the report body ( with or without filters )
+    * filters: (yaml) a dictionary of filters to apply ( see above examples )
 
   Returns:
-    * body: ( json ) modified report body
+    * body: ( yaml ) modified report body
   """
 
   for field, source in filters.items():
@@ -113,20 +113,20 @@ def report_build(
   auth: str,
   body: dict
 ) -> dict:
-  """Creates a DBM report given a JSON definition.
+  """Creates a DBM report given a yaml definition.
 
   The report will be automatically run the first time.
 
-  The body JSON provided will have the following fields added if not present:
+  The body yaml provided will have the following fields added if not present:
     * schedule - set to run daily and expire in one year.
 
   Args:
     * auth: (string) Either user or service.
-    * body: (json) As defined in:
+    * body: (yaml) As defined in:
       https://developers.google.com/doubleclick-advertisers/v3.2/reports#resource
 
   Returns:
-    * JSON definition of report created or existing.
+    * yaml definition of report created or existing.
   """
 
   report = report_get(config, auth, name=body['metadata']['title'])
@@ -175,7 +175,7 @@ def report_fetch(
   name: str = None,
   timeout: int = 60
 ) -> Union[dict, bool]:
-  """Retrieves most recent DBM file JSON by name or ID, if in progress, waits for it to complete.
+  """Retrieves most recent DBM file yaml by name or ID, if in progress, waits for it to complete.
 
   Timeout is in minutes ( retries will happen at 5 minute interval, default
   total time is 20 minutes )
@@ -187,7 +187,7 @@ def report_fetch(
     * timeout: (int) Minutes to wait for in progress report before giving up.
 
   Returns:
-    * Report JSON if report exists and is ready.
+    * Report yaml if report exists and is ready.
     * True if report is in progress but not ready.
     * False if report does not exist.
   """
@@ -283,8 +283,8 @@ def report_run(
       report_id = report['id']
 
   files = list(report_files(config, auth, report_id))
-  latest_file_json = files[0] if len(files) > 0 else None
-  if latest_file_json == None or latest_file_json['metadata']['status']['state'] != 'PROCESSING':
+  latest_file_yaml = files[0] if len(files) > 0 else None
+  if latest_file_yaml == None or latest_file_yaml['metadata']['status']['state'] != 'PROCESSING':
     # run report if previously never run or currently not running
     if config.verbose:
       print('RUNNING REPORT', report_id or name)
@@ -313,7 +313,7 @@ def report_files(
     * report_id: (int) DCM report identifier.
 
   Returns:
-    * Iterator of JSONs.
+    * Iterator of yamls.
   """
 
   for report_file in API_DBM(

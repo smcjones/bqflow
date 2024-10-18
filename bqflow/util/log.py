@@ -40,7 +40,7 @@ class Log():
       print('CREATING LOG')   
 
     if 'bigquery' in self.destination:
-      self.destination['bigquery']['format'] = 'JSON'
+      self.destination['bigquery']['format'] = 'yaml'
 
       BigQuery(
         config,

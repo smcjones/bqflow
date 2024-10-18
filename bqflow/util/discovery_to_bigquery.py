@@ -24,18 +24,18 @@ See documentation at:
 
 For example:
 
-  print(json.dumps(
+  print(yaml.dump(
     Discovery_To_BigQuery('displayvideo', 'v1').resource_schema('Advertiser'),
     indent = 2
   ))
 
-  print(json.dumps(
+  print(yaml.dump(
     Discovery_To_BigQuery('dfareporting', 'v3.4').method_schema('sites', 'list'),
     indent = 2
   ))
 """
 
-import json
+import yaml
 import re
 from collections.abc import Mapping, Sequence
 from copy import deepcopy
@@ -69,7 +69,7 @@ def preferred_version(
     key or ''
   )
   print('DISCOVERY FETCH:', api_url)
-  api_info = json.load(request.urlopen(api_url))
+  api_info = yaml.load(request.urlopen(api_url))
   return api_info['items'][0]['version']
 
 
@@ -114,7 +114,7 @@ class Discovery_To_BigQuery():
       self.labels
     )
     print('DISCOVERY FETCH:', api_url)
-    self.api_document = json.load(request.urlopen(api_url))
+    self.api_document = yaml.load(request.urlopen(api_url))
 
   def to_type(
     self,
@@ -267,10 +267,10 @@ class Discovery_To_BigQuery():
 
     return bigquery_schema
 
-  def to_json(
+  def to_yaml(
     self,
     from_api: Mapping = None,
-    from_json: Mapping = None,
+    from_yaml: Mapping = None,
     parents: Mapping = None
   ) -> Mapping:
     """Returns a Discovery API Document schema with all refrences extrapolated.
@@ -282,7 +282,7 @@ class Discovery_To_BigQuery():
 
     Args:
       from_api: the api schema to extrapolate
-      from_json: new object with references replaced, not passed by caller
+      from_yaml: new object with references replaced, not passed by caller
       parents: used to track recursion depth for a specific schema branch
 
     Returns:
@@ -293,9 +293,9 @@ class Discovery_To_BigQuery():
       parents = {}
 
     if from_api:
-      from_json = deepcopy(from_api)
+      from_yaml = deepcopy(from_api)
 
-    for key, value in sorted(from_json.items()):
+    for key, value in sorted(from_yaml.items()):
 
       # when the entry is { "type": "object", "someObject": {..} }, ignores "type"
       if not isinstance(value, Mapping):
@@ -308,23 +308,23 @@ class Discovery_To_BigQuery():
           parents[ref] += 1
           del value['$ref']
           value['type'] = 'dict'
-          value['object'] = self.to_json(
+          value['object'] = self.to_yaml(
             from_api = self.api_document['schemas'][ref]['properties'],
             parents = parents
           )
           parents[ref] -= 1
         else:
-          from_json[key] = None
+          from_yaml[key] = None
 
       else:
-        self.to_json(from_json = value, parents = parents)
+        self.to_yaml(from_yaml = value, parents = parents)
 
-    return from_json
+    return from_yaml
 
   def to_struct(
     self,
     from_api: Mapping = None,
-    from_json: Mapping = None,
+    from_yaml: Mapping = None,
     indent: int = 2
   ) -> str:
     """Translates a Discovery API Document schema to a BigQuery STRUCT.
@@ -336,7 +336,7 @@ class Discovery_To_BigQuery():
 
     Args:
       from_api: the api schema to extrapolate
-      from_json: new object with references replaced, not passed by caller
+      from_yaml: new object with references replaced, not passed by caller
       parents: used to track recursion depth for a specific schema branch
 
     Returns:
@@ -344,12 +344,12 @@ class Discovery_To_BigQuery():
     """
 
     if from_api:
-      from_json = self.to_json(from_api = from_api)
+      from_yaml = self.to_yaml(from_api = from_api)
 
     fields = []
     spaces = ' ' * indent
 
-    for key, value in sorted(from_json.items()):
+    for key, value in sorted(from_yaml.items()):
 
       # when the entry is { "type": "object", "someObject": {..} }, ignores "type"
       if not isinstance(value, Mapping):
@@ -358,7 +358,7 @@ class Discovery_To_BigQuery():
       if value['type'] == 'dict':
         fields.append('%sSTRUCT(\n%s\n%s) AS %s' % (
           spaces,
-          self.to_struct(from_json = value['object'], indent = indent + 2),
+          self.to_struct(from_yaml = value['object'], indent = indent + 2),
           spaces,
           key
         ))
@@ -373,7 +373,7 @@ class Discovery_To_BigQuery():
         else:
           fields.append('%s[STRUCT(\n%s\n%s)] AS %s' % (
             spaces,
-            self.to_struct(from_json = value['items'], indent = indent + 2),
+            self.to_struct(from_yaml = value['items'], indent = indent + 2),
             spaces,
             key
           ))
@@ -382,11 +382,11 @@ class Discovery_To_BigQuery():
 
     return ',\n'.join(fields)
 
-  def resource_json(
+  def resource_yaml(
     self,
     resource: str
   ) -> Mapping:
-    """Return Discovery API Document json for a resource.
+    """Return Discovery API Document yaml for a resource.
 
     Expands all the references.
 
@@ -398,7 +398,7 @@ class Discovery_To_BigQuery():
     """
 
     resource = self.api_document['schemas'][resource]['properties']
-    return self.to_json(from_api = resource)
+    return self.to_yaml(from_api = resource)
 
   def resource_schema(
     self,

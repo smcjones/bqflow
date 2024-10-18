@@ -18,23 +18,23 @@
 
 """The global variable class of BQFlow.
 
-Project loads JSON and parameters and combines them for execturion.  It handles
+Project loads yaml and parameters and combines them for execturion.  It handles
 three important concepts:
 
-  1. Load the JSON and make all task parameters available to python scripts.
+  1. Load the yaml and make all task parameters available to python scripts.
   2. Load authentication, all three parameters are optional if scripts do not
      use them.  The following parameters can be passed for authentication.
 
-    user.json - user credentials json ( generated from client ), is refreshed
+    user.yaml - user credentials yaml ( generated from client ), is refreshed
                 by BQFlow as required.  Can be provided as a local path
                 or a Cloud Bucket Storage path for distributed jobs.
 
-    service.json - service credentials json ( generated from cloud project ).
-                   Passed as a local path or an embedded json object for
+    service.yaml - service credentials yaml ( generated from cloud project ).
+                   Passed as a local path or an embedded yaml object for
                    distributed jobs.
 
-    client.json - client credentials json ( generated from cloud project ).
-                  Also require a user json path which will be written to after
+    client.yaml - client credentials yaml ( generated from cloud project ).
+                  Also require a user yaml path which will be written to after
                   client authnetication.  Once authenticated this client is not
                   required.
 
@@ -53,7 +53,7 @@ three important concepts:
 """
 
 import os
-import json
+import yaml
 import hashlib
 import datetime
 
@@ -74,7 +74,8 @@ class Configuration():
     key=None,
     timezone='America/Los_Angeles',
     verbose=False,
-    browserless=False
+    browserless=False,
+    includes=[],
   ):
     """Used in BQFlow scripts as programmatic entry point.
 
@@ -87,6 +88,7 @@ class Configuration():
       * timezone: (string) See module description.
       * verbose: (boolean) See module description.
       * browserless: (boolean) See module description.
+      * includes: (string[]) See module description
       * args: (dict) dictionary of arguments (used with argParse).
 
     Returns:
@@ -99,6 +101,7 @@ class Configuration():
     self.user = user
     self.verbose = verbose
     self.browserless = browserless
+    self.includes = includes
     self.key = key
 
     self.days = []
@@ -130,5 +133,5 @@ class Configuration():
     """
 
     h = hashlib.sha256()
-    h.update(json.dumps(self.project).encode())
+    h.update(yaml.dump(self.project).encode())
     return h.hexdigest()

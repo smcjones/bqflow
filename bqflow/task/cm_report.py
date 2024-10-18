@@ -15,10 +15,10 @@
 #  limitations under the License.
 #
 ###########################################################################
-"""Handler that executes { "dcm":{...}} task in recipe JSON.
+"""Handler that executes { "dcm":{...}} task in recipe yaml.
 
-This script translates JSON instructions into operations on DCM reporting.
-It deletes, or creates, and/or downloads DCM reports.  See JSON files in
+This script translates yaml instructions into operations on DCM reporting.
+It deletes, or creates, and/or downloads DCM reports.  See yaml files in
 this directory for examples of operations.
 
 This script uses put_rows as defined in util/data/README.md. This allows
@@ -118,6 +118,6 @@ def cm_report(config, log, task):
         if 'schema' not in task['out']['bigquery']:
           task['out']['bigquery']['schema'] = report_schema(next(rows))
 
-      # write rows using standard out block in json ( allows customization across all scripts )
+      # write rows using standard out block in yaml ( allows customization across all scripts )
       if rows:
         return put_rows(config, task['auth'], task['out'], rows)

@@ -17,7 +17,7 @@
 ###########################################################################
 
 import re
-import json
+import yaml
 import base64
 from time import sleep
 from io import BytesIO
@@ -29,13 +29,13 @@ from google.oauth2.service_account import Credentials
 
 from bqflow.config import UI_SERVICE
 
-RE_CREDENTIALS_JSON = re.compile(r'^\s*\{.*\}\s*$', re.DOTALL)
+RE_CREDENTIALS_yaml = re.compile(r'^\s*\{.*\}\s*$', re.DOTALL)
 
 
 def _credentials_storage_service():
 
-  if RE_CREDENTIALS_JSON.match(UI_SERVICE):
-    credentials = Credentials.from_service_account_info(json.loads(UI_SERVICE))
+  if RE_CREDENTIALS_yaml.match(UI_SERVICE):
+    credentials = Credentials.from_service_account_info(yaml.safe_load(UI_SERVICE))
   else:
     credentials = Credentials.from_service_account_file(UI_SERVICE)
 
@@ -58,13 +58,13 @@ def credentials_storage_get(cloud_path):
   data = _credentials_retry(_credentials_storage_service().objects().get_media(
     bucket=bucket, object=filename)
   )
-  return json.loads(base64.b64decode(data.decode()).decode())
+  return yaml.safe_load(base64.b64decode(data.decode()).decode())
 
 
 def credentials_storage_put(cloud_path, credentials):
   bucket, filename = cloud_path.split(':', 1)
-  data = BytesIO(base64.b64encode(json.dumps(credentials).encode()))
-  media = MediaIoBaseUpload(data, mimetype='text/json')
+  data = BytesIO(base64.b64encode(yaml.dump(credentials).encode()))
+  media = MediaIoBaseUpload(data, mimetype='text/yaml')
   _credentials_retry(_credentials_storage_service().objects().insert(
     bucket=bucket, name=filename, media_body=media)
   )

@@ -18,13 +18,13 @@
 
 """Moves data to and from Google Rest API and BigQuery.
 
-Intended to be thin and pass control to recipe JSON for flexibility.
+Intended to be thin and pass control to recipe yaml for flexibility.
 Task designed to be used with a recipe.
 Leverages discovery document to define schema.
 The results and error sections are optional.
 
 For invocation see:
-scripts/google_api_to_bigquery.json
+scripts/google_api_to_bigquery.yaml
 
 Example Read DV360 Partner Name and Id Into BigQuery:
 
@@ -117,11 +117,11 @@ def google_api_build_results(
 
   Args:
     auth: either 'user' or 'service' to make the BigQuery call.
-    api_call: the JSON for the API call as defined in recipe.
+    api_call: the yaml for the API call as defined in recipe.
     results: defines where the data will be written
 
   Returns:
-    A modified results JSON with additional API values added.
+    A modified results yaml with additional API values added.
 
   Raises:
     ValueError: If a required key in the recipe is missing.
@@ -144,7 +144,7 @@ def google_api_build_results(
       results['bigquery']['auth'] = auth
 
     if 'format' not in results['bigquery']:
-      results['bigquery']['format'] = 'JSON'
+      results['bigquery']['format'] = 'yaml'
 
     results['bigquery']['header'] = False
 
@@ -198,7 +198,7 @@ def google_api_execute(
 
   Args:
     config: credentials and authentication settings
-    api_call: the JSON for the API call as defined in recipe.
+    api_call: the yaml for the API call as defined in recipe.
     results: defines where the data will be written
     append: optional parameters to append to each row, given as BQ schema
 
@@ -217,7 +217,7 @@ def google_api_execute(
       rows = [rows]
 
     # check if simple string API results
-    elif results.get('bigquery', {}).get('format', 'JSON') == 'CSV':
+    elif results.get('bigquery', {}).get('format', 'yaml') == 'CSV':
       rows = [[r] for r in rows]
 
     if config.verbose:
@@ -234,7 +234,7 @@ def google_api(
   log: Log,
   task: Mapping
 ) -> Iterator[Mapping]:
-  """Task handler for recipe, delegates all JSON parameters to functions.
+  """Task handler for recipe, delegates all yaml parameters to functions.
 
   Executes the following steps:
     1. Define the API call.
@@ -290,7 +290,7 @@ def google_api(
   if task.get('append'):
     result_table['bigquery']['schema'].extend(task.get('append'))
 
-  # get parameters from JSON
+  # get parameters from yaml
   if 'kwargs' in task:
     kwargs_list = task['kwargs'] if isinstance(
       task['kwargs'], (list, tuple)

@@ -77,7 +77,7 @@ def vision_annotate(config, task):
 
 def vision_api(config, log, task):
 
-  task['responses']['bigquery']['format'] = 'JSON'
+  task['responses']['bigquery']['format'] = 'yaml'
 
   schema = Discovery_To_BigQuery(
     'vision',
@@ -89,7 +89,7 @@ def vision_api(config, log, task):
   # append URI to results for mapping
   schema.insert(0, {'description': 'Mapping back to request.', 'name': 'imageUri', 'type': 'STRING', 'mode': 'REQUIRED'})
 
-  task['responses']['bigquery']['format'] = 'JSON'
+  task['responses']['bigquery']['format'] = 'yaml'
   task['responses']['bigquery']['schema'] = schema
 
   return put_rows(
